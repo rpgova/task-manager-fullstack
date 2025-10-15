@@ -22,7 +22,14 @@ export default function TaskBoard() {
     try {
       const res = await axios.get(`${API_BASE}/tasks`);
       console.log("✅ Fetched tasks:", res.data);
-      setTasks(res.data);
+
+      // Ensure each task has status
+      const tasksWithStatus = res.data.map((t) => ({
+        ...t,
+        status: t.status?.trim() || "To Do",
+      }));
+
+      setTasks(tasksWithStatus);
     } catch (err) {
       console.error("❌ Failed to fetch tasks:", err.message);
       setTasks([]);
@@ -69,8 +76,14 @@ export default function TaskBoard() {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Filter + sort tasks safely
   const filteredTasks = (tasks || [])
-    .filter((t) => (filters.status ? (t.status || "To Do") === filters.status : true))
+    .filter((t) =>
+      filters.status
+        ? (t.status || "To Do").trim().toLowerCase() ===
+          filters.status.trim().toLowerCase()
+        : true
+    )
     .filter((t) => (filters.assignedTo ? t.assignedTo === filters.assignedTo : true))
     .sort((a, b) =>
       filters.sortOrder === "asc"
@@ -113,7 +126,9 @@ export default function TaskBoard() {
           >
             <h2 className="text-xl font-bold mb-4">{col}</h2>
             {filteredTasks
-              .filter((t) => (t.status || "To Do") === col)
+              .filter(
+                (t) => (t.status || "To Do").trim().toLowerCase() === col.toLowerCase()
+              )
               .map((task) => (
                 <TaskCard
                   key={task.id}
