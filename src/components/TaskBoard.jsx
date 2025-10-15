@@ -4,9 +4,9 @@ import TaskForm from "./TaskForm";
 import TaskCard from "./TaskCard";
 import Filters from "./Filters";
 
-// ✅ Use deployed backend URL as fallback
+// ✅ Use environment variable if available, fallback to deployed backend
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_BASE_URL?.trim() ||
   "https://task-manager-backend-isg7.onrender.com/api";
 
 export default function TaskBoard() {
@@ -19,7 +19,7 @@ export default function TaskBoard() {
     sortOrder: "asc",
   });
 
-  // ✅ Fetch tasks from backend safely
+  // ✅ Fetch tasks from backend
   const fetchTasks = async () => {
     try {
       const res = await axios.get(`${API_BASE}/tasks`);
@@ -80,7 +80,7 @@ export default function TaskBoard() {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Apply filters + sorting safely
+  // ✅ Apply filters + sorting
   const filteredTasks = (Array.isArray(tasks) ? tasks : [])
     .filter((t) => (filters.status ? t.status === filters.status : true))
     .filter((t) => (filters.assignedTo ? t.assignedTo === filters.assignedTo : true))
