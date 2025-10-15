@@ -21,15 +21,12 @@ export default function TaskBoard() {
   const fetchTasks = async () => {
     try {
       const res = await axios.get(`${API_BASE}/tasks`);
-      console.log("✅ Fetched tasks:", res.data);
-
-      // Ensure each task has status
-      const tasksWithStatus = res.data.map((t) => ({
+      const tasksWithDefaults = res.data.map((t) => ({
         ...t,
         status: t.status?.trim() || "To Do",
+        assignedTo: t.assignedTo?.trim() || "",
       }));
-
-      setTasks(tasksWithStatus);
+      setTasks(tasksWithDefaults);
     } catch (err) {
       console.error("❌ Failed to fetch tasks:", err.message);
       setTasks([]);
@@ -76,20 +73,18 @@ export default function TaskBoard() {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Filter + sort tasks safely
   const filteredTasks = (tasks || [])
     .filter((t) =>
-      filters.status
-        ? (t.status || "To Do").trim().toLowerCase() ===
-          filters.status.trim().toLowerCase()
-        : true
+      filters.status ? t.status.toLowerCase() === filters.status.toLowerCase() : true
     )
-    .filter((t) => (filters.assignedTo ? t.assignedTo === filters.assignedTo : true))
-    .sort((a, b) =>
-      filters.sortOrder === "asc"
-        ? new Date(a.createdAt) - new Date(b.createdAt)
-        : new Date(b.createdAt) - new Date(a.createdAt)
-    );
+    .filter((t) =>
+      filters.assignedTo ? (t.assignedTo || "").toLowerCase() === filters.assignedTo.toLowerCase() : true
+    )
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime() || 0;
+      const dateB = new Date(b.createdAt).getTime() || 0;
+      return filters.sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
 
   const columns = ["To Do", "In Progress", "Done"];
 
@@ -126,9 +121,7 @@ export default function TaskBoard() {
           >
             <h2 className="text-xl font-bold mb-4">{col}</h2>
             {filteredTasks
-              .filter(
-                (t) => (t.status || "To Do").trim().toLowerCase() === col.toLowerCase()
-              )
+              .filter((t) => (t.status || "To Do").toLowerCase() === col.toLowerCase())
               .map((task) => (
                 <TaskCard
                   key={task.id}
