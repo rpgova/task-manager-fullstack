@@ -4,7 +4,6 @@ import TaskForm from "./TaskForm";
 import TaskCard from "./TaskCard";
 import Filters from "./Filters";
 
-// ✅ Backend ka Render URL — localhost bilkul nahi!
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL?.trim() ||
   "https://task-manager-backend-isg7.onrender.com/api";
@@ -19,16 +18,11 @@ export default function TaskBoard() {
     sortOrder: "asc",
   });
 
-  // ✅ Tasks fetch karna
   const fetchTasks = async () => {
     try {
       const res = await axios.get(`${API_BASE}/tasks`);
-      const data = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data.tasks)
-        ? res.data.tasks
-        : [];
-      setTasks(data);
+      console.log("✅ Fetched tasks:", res.data);
+      setTasks(res.data);
     } catch (err) {
       console.error("❌ Failed to fetch tasks:", err.message);
       setTasks([]);
@@ -39,7 +33,6 @@ export default function TaskBoard() {
     fetchTasks();
   }, []);
 
-  // ✅ Create / Update
   const handleSave = async (task) => {
     try {
       if (task.id) {
@@ -52,17 +45,15 @@ export default function TaskBoard() {
       setEditTask(null);
     } catch (err) {
       console.error("❌ Error saving task:", err.message);
-      alert("Server se connection fail hua — Render backend check karo!");
+      alert("Server se connection fail hua!");
     }
   };
 
-  // ✅ Edit Task
   const handleEdit = (task) => {
     setEditTask(task);
     setShowForm(true);
   };
 
-  // ✅ Delete Task
   const handleDelete = async (id) => {
     try {
       if (confirm("Delete this task permanently?")) {
@@ -74,14 +65,12 @@ export default function TaskBoard() {
     }
   };
 
-  // ✅ Filters
   const handleFilter = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Filter + Sort
   const filteredTasks = (tasks || [])
-    .filter((t) => (filters.status ? t.status === filters.status : true))
+    .filter((t) => (filters.status ? (t.status || "To Do") === filters.status : true))
     .filter((t) => (filters.assignedTo ? t.assignedTo === filters.assignedTo : true))
     .sort((a, b) =>
       filters.sortOrder === "asc"
@@ -124,7 +113,7 @@ export default function TaskBoard() {
           >
             <h2 className="text-xl font-bold mb-4">{col}</h2>
             {filteredTasks
-              .filter((t) => t.status === col)
+              .filter((t) => (t.status || "To Do") === col)
               .map((task) => (
                 <TaskCard
                   key={task.id}
