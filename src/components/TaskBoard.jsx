@@ -4,7 +4,7 @@ import TaskForm from "./TaskForm";
 import TaskCard from "./TaskCard";
 import Filters from "./Filters";
 
-// ✅ Use environment variable if available, fallback to deployed backend
+// ✅ Backend ka Render URL — localhost bilkul nahi!
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL?.trim() ||
   "https://task-manager-backend-isg7.onrender.com/api";
@@ -19,20 +19,18 @@ export default function TaskBoard() {
     sortOrder: "asc",
   });
 
-  // ✅ Fetch tasks from backend
+  // ✅ Tasks fetch karna
   const fetchTasks = async () => {
     try {
       const res = await axios.get(`${API_BASE}/tasks`);
-      if (Array.isArray(res.data)) {
-        setTasks(res.data);
-      } else if (res.data.tasks && Array.isArray(res.data.tasks)) {
-        setTasks(res.data.tasks);
-      } else {
-        console.error("Unexpected response:", res.data);
-        setTasks([]);
-      }
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.tasks)
+        ? res.data.tasks
+        : [];
+      setTasks(data);
     } catch (err) {
-      console.error("Failed to fetch tasks:", err);
+      console.error("❌ Failed to fetch tasks:", err.message);
       setTasks([]);
     }
   };
@@ -41,7 +39,7 @@ export default function TaskBoard() {
     fetchTasks();
   }, []);
 
-  // ✅ Handle save (create/update)
+  // ✅ Create / Update
   const handleSave = async (task) => {
     try {
       if (task.id) {
@@ -53,35 +51,36 @@ export default function TaskBoard() {
       setShowForm(false);
       setEditTask(null);
     } catch (err) {
-      console.error("Error saving task:", err);
+      console.error("❌ Error saving task:", err.message);
+      alert("Server se connection fail hua — Render backend check karo!");
     }
   };
 
-  // ✅ Edit existing task
+  // ✅ Edit Task
   const handleEdit = (task) => {
     setEditTask(task);
     setShowForm(true);
   };
 
-  // ✅ Delete task
+  // ✅ Delete Task
   const handleDelete = async (id) => {
     try {
-      if (confirm("Are you sure you want to delete this task?")) {
+      if (confirm("Delete this task permanently?")) {
         await axios.delete(`${API_BASE}/tasks/${id}`);
         fetchTasks();
       }
     } catch (err) {
-      console.error("Error deleting task:", err);
+      console.error("❌ Error deleting task:", err.message);
     }
   };
 
-  // ✅ Filter changes
+  // ✅ Filters
   const handleFilter = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Apply filters + sorting
-  const filteredTasks = (Array.isArray(tasks) ? tasks : [])
+  // ✅ Filter + Sort
+  const filteredTasks = (tasks || [])
     .filter((t) => (filters.status ? t.status === filters.status : true))
     .filter((t) => (filters.assignedTo ? t.assignedTo === filters.assignedTo : true))
     .sort((a, b) =>
@@ -124,7 +123,7 @@ export default function TaskBoard() {
             className="bg-gray-50 rounded-2xl shadow-inner p-4 min-h-[300px]"
           >
             <h2 className="text-xl font-bold mb-4">{col}</h2>
-            {(filteredTasks || [])
+            {filteredTasks
               .filter((t) => t.status === col)
               .map((task) => (
                 <TaskCard
