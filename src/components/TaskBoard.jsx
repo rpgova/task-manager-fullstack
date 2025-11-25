@@ -7,7 +7,7 @@ import Filters from "./Filters";
 // ✅ Use deployed backend URL as fallback
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://task-manager-backend-isg7.onrender.com/api";
+  "https://task-manager-backend-4-qq02.onrender.com";
 
 export default function TaskBoard() {
   const [tasks, setTasks] = useState([]);
