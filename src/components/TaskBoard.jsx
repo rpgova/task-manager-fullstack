@@ -6,7 +6,7 @@ import Filters from "./Filters";
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL?.trim() ||
-  "https://task-manager-backend-isg7.onrender.com/api";
+  "https://task-manager-backend-4-qq02.onrender.com/api";
 
 export default function TaskBoard() {
   const [tasks, setTasks] = useState([]);
